@@ -2,15 +2,50 @@ const board = document.getElementById('board');
 const cells = document.querySelectorAll('[data-cell]');
 const status = document.getElementById('status');
 const restartButton = document.getElementById('restartButton');
+const soundToggle = document.getElementById('soundToggle');
+// Sound elements
+const placeSound = document.getElementById('placeSound');
+const winSound = document.getElementById('winSound');
+const drawSound = document.getElementById('drawSound');
+const restartSound = document.getElementById('restartSound');
 let currentPlayer = 'x';
 let gameActive = true;
 let gameState = ['', '', '', '', '', '', '', '', ''];
+let soundEnabled = true;
+
+// Set initial volume levels
+winSound.volume = 0.4; // Reduce the win sound volume
 
 const winningCombinations = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
     [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
     [0, 4, 8], [2, 4, 6] // Diagonals
 ];
+
+// Function to toggle sound
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    soundToggle.classList.toggle('muted');
+    
+    // Update the icon
+    const icon = soundToggle.querySelector('i');
+    if (soundEnabled) {
+        icon.className = 'fas fa-volume-up';
+    } else {
+        icon.className = 'fas fa-volume-mute';
+    }
+}
+
+// Function to play sound
+function playSound(sound) {
+    if (!soundEnabled) return;
+    
+    // Reset the audio to the beginning
+    sound.currentTime = 0;
+    sound.play().catch(error => {
+        console.error("Error playing sound:", error);
+    });
+}
 
 function handleCellClick(e) {
     const cell = e.target;
@@ -21,6 +56,9 @@ function handleCellClick(e) {
     gameState[cellIndex] = currentPlayer;
     cell.textContent = currentPlayer.toUpperCase();
     cell.classList.add(currentPlayer);
+    
+    // Play place sound
+    playSound(placeSound);
 
     if (checkWin()) {
         gameActive = false;
@@ -28,12 +66,16 @@ function handleCellClick(e) {
         status.classList.add('celebration-text');
         highlightWinningCells();
         createConfetti();
+        // Play win sound
+        playSound(winSound);
         return;
     }
 
     if (checkDraw()) {
         gameActive = false;
         status.textContent = "Draw!";
+        // Play draw sound
+        playSound(drawSound);
         return;
     }
 
@@ -123,6 +165,9 @@ function checkDraw() {
 }
 
 function restartGame() {
+    // Play restart sound
+    playSound(restartSound);
+    
     currentPlayer = 'x';
     gameActive = true;
     gameState = ['', '', '', '', '', '', '', '', ''];
@@ -136,4 +181,5 @@ function restartGame() {
 
 // Event Listeners
 cells.forEach(cell => cell.addEventListener('click', handleCellClick));
-restartButton.addEventListener('click', restartGame); 
+restartButton.addEventListener('click', restartGame);
+soundToggle.addEventListener('click', toggleSound); 
